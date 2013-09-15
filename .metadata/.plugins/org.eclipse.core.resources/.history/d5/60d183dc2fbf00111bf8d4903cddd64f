@@ -1,0 +1,15 @@
+package com.appstore.client.ui;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import com.appstore.client.functions.*;
+
+public class BaseFunctionsEx extends BaseFunctions {
+
+	
+}

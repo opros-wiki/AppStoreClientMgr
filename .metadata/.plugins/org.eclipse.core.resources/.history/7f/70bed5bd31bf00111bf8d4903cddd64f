@@ -1,0 +1,98 @@
+package com.appstore.client.ui;
+
+import javax.swing.JPanel;
+import javax.swing.border.LineBorder;
+import java.awt.Color;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.JToolBar;
+import javax.swing.SwingConstants;
+import javax.swing.JButton;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.JLabel;
+
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import com.appstore.client.functions.*;
+public class ListInfoPane extends JPanel {
+
+	// Display list
+	public static void DisplayListOnPane(
+			List<Node> list, ArrayList<String> targetTags, HashMap referenceMap, ListInfoPane pane)
+	{
+		String txtInfo="";
+		List<String> dl=new ArrayList<String>();
+		
+		for (int i=0; i<list.size();i++)
+		{
+			NodeList childs = list.get(i).getChildNodes();
+			for (int j=0; j<childs.getLength();j++)
+			{
+				String nn=childs.item(j).getNodeName();
+				if (targetTags.indexOf(nn)>-1)
+				{
+					txtInfo+=referenceMap.get(nn)+":"+childs.item(j).getTextContent()+"\n";
+					System.out.println(referenceMap.get(nn)+":"+childs.item(j).getTextContent());
+				}
+			}
+			
+			System.out.println("-----------");
+		}
+		pane.lblListInfo.setText("");
+	}
+	/**
+	 * Create the panel.
+	 */
+	public JLabel lblListInfo;
+	public ListInfoPane(List<Node> list, ArrayList<String> targetTags, HashMap referenceMap)
+	{
+		setForeground(Color.DARK_GRAY);
+		setBackground(Color.WHITE);
+		setBorder(new LineBorder(new Color(0, 0, 0), 1, true));
+		
+		JButton btnDownload = new JButton("Download");
+		btnDownload.setBackground(Color.RED);
+		
+		JButton btnInstall = new JButton("Install");
+		btnInstall.setBackground(Color.DARK_GRAY);
+		
+		JButton btnWebPage = new JButton("Web Page");
+		btnWebPage.setBackground(Color.ORANGE);
+		
+		lblListInfo = new JLabel("Information");
+		GroupLayout groupLayout = new GroupLayout(this);
+		groupLayout.setHorizontalGroup(
+			groupLayout.createParallelGroup(Alignment.TRAILING)
+				.addGroup(groupLayout.createSequentialGroup()
+					.addContainerGap()
+					.addComponent(lblListInfo)
+					.addPreferredGap(ComponentPlacement.RELATED, 278, Short.MAX_VALUE)
+					.addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+						.addComponent(btnDownload)
+						.addComponent(btnWebPage, Alignment.TRAILING)
+						.addComponent(btnInstall, Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 89, GroupLayout.PREFERRED_SIZE))
+					.addContainerGap())
+		);
+		groupLayout.setVerticalGroup(
+			groupLayout.createParallelGroup(Alignment.TRAILING)
+				.addGroup(Alignment.LEADING, groupLayout.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(groupLayout.createParallelGroup(Alignment.BASELINE)
+						.addComponent(btnDownload)
+						.addComponent(lblListInfo))
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(btnInstall)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(btnWebPage)
+					.addContainerGap(207, Short.MAX_VALUE))
+		);
+		setLayout(groupLayout);
+		
+		DisplayListOnPane(list, targetTags, referenceMap, pane);
+	}
+}

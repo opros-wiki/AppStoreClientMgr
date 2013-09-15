@@ -1,0 +1,32 @@
+package com.appstore.client.ui;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import com.appstore.client.functions.*;
+
+public class BaseFunctionsEx extends BaseFunctions {
+
+	// Display list
+	public static void DisplayListOnPane(List<Node> list, ArrayList<String> targetTags, HashMap referenceMap)
+	{
+		List<String> dl=new ArrayList<String>();
+		
+		for (int i=0; i<list.size();i++)
+		{
+			NodeList childs = list.get(i).getChildNodes();
+			for (int j=0; j<childs.getLength();j++)
+			{
+				String nn=childs.item(j).getNodeName();
+				if (targetTags.indexOf(nn)>-1)
+					System.out.println(referenceMap.get(nn)+":"+childs.item(j).getTextContent());
+			}
+			
+			System.out.println("-----------");
+		}
+	}
+}

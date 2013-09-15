@@ -1,0 +1,7 @@
+package com.appstore.client.ui;
+
+import com.appstore.client.functions.*;
+
+public class BaseFunctionsEx extends BaseFunctions {
+
+}

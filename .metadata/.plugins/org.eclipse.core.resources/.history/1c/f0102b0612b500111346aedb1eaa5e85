@@ -1,0 +1,16 @@
+
+//VS4E -- DO NOT REMOVE THIS LINE!
+public class EEE {
+
+	private static final long serialVersionUID = 1L;
+
+	public EEE() {
+		initComponents();
+	}
+
+	private void initComponents() {
+
+		setSize(320, 240);
+	}
+
+}

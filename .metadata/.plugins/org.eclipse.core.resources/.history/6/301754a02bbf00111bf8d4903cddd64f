@@ -1,0 +1,42 @@
+package com.appstore.client.ui;
+
+import javax.swing.JPanel;
+import javax.swing.border.LineBorder;
+import java.awt.Color;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.JToolBar;
+import javax.swing.SwingConstants;
+
+public class ListInfoPane extends JPanel {
+
+	/**
+	 * Create the panel.
+	 */
+	public ListInfoPane() {
+		setForeground(Color.DARK_GRAY);
+		setBackground(Color.WHITE);
+		setBorder(new LineBorder(new Color(0, 0, 0), 1, true));
+		
+		JToolBar toolBar = new JToolBar();
+		toolBar.setOrientation(SwingConstants.VERTICAL);
+		GroupLayout groupLayout = new GroupLayout(this);
+		groupLayout.setHorizontalGroup(
+			groupLayout.createParallelGroup(Alignment.LEADING)
+				.addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
+					.addContainerGap(315, Short.MAX_VALUE)
+					.addComponent(toolBar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addGap(30))
+		);
+		groupLayout.setVerticalGroup(
+			groupLayout.createParallelGroup(Alignment.LEADING)
+				.addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
+					.addContainerGap(146, Short.MAX_VALUE)
+					.addComponent(toolBar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addGap(135))
+		);
+		setLayout(groupLayout);
+		this.WIDTH=300;
+		this.HEIGHT=200;
+	}
+}

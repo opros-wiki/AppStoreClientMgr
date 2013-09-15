@@ -1,0 +1,182 @@
+package com.appstore.client.ui;
+
+import java.awt.EventQueue;
+
+import javax.swing.JFrame;
+import java.awt.FlowLayout;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.JTabbedPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.border.TitledBorder;
+import javax.swing.UIManager;
+import javax.swing.border.LineBorder;
+import javax.swing.JLabel;
+import java.awt.Font;
+import javax.swing.JSpinner;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.SpinnerListModel;
+import java.awt.Toolkit;
+import javax.swing.JButton;
+
+import org.w3c.dom.Node;
+
+import com.appstore.client.functions.*;
+
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.util.List;
+
+
+public class AppStoreClientUI {
+
+	public JFrame frmAppstoreclient;
+	private AppStoreFunctions asf=new AppStoreFunctions();
+	
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					AppStoreClientUI window = new AppStoreClientUI();
+					window.frmAppstoreclient.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the application.
+	 */
+	public AppStoreClientUI() {
+		initialize();
+	}
+
+	/**
+	 * Initialize the contents of the frame.
+	 */
+	private void initialize() {
+		frmAppstoreclient = new JFrame();
+		frmAppstoreclient.setIconImage(Toolkit.getDefaultToolkit().getImage(AppStoreClientUI.class.getResource("/javax/swing/plaf/metal/icons/ocean/hardDrive.gif")));
+		frmAppstoreclient.setBackground(Color.WHITE);
+		frmAppstoreclient.setTitle("AppStoreClient");
+		frmAppstoreclient.getContentPane().setBackground(Color.WHITE);
+		
+		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		GroupLayout groupLayout = new GroupLayout(frmAppstoreclient.getContentPane());
+		groupLayout.setHorizontalGroup(
+			groupLayout.createParallelGroup(Alignment.LEADING)
+				.addGroup(groupLayout.createSequentialGroup()
+					.addContainerGap()
+					.addComponent(tabbedPane, GroupLayout.DEFAULT_SIZE, 760, Short.MAX_VALUE)
+					.addContainerGap())
+		);
+		groupLayout.setVerticalGroup(
+			groupLayout.createParallelGroup(Alignment.LEADING)
+				.addGroup(Alignment.TRAILING, groupLayout.createSequentialGroup()
+					.addContainerGap()
+					.addComponent(tabbedPane, GroupLayout.DEFAULT_SIZE, 422, Short.MAX_VALUE)
+					.addContainerGap())
+		);
+		
+		JPanel panel = new JPanel();
+		panel.setBackground(Color.WHITE);
+		tabbedPane.addTab("Purchased List", null, panel, null);
+		
+		JPanel panel_3 = new JPanel();
+		panel_3.setBorder(new TitledBorder(new LineBorder(new Color(0, 0, 0), 1, true), "Conditions", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(64, 64, 64)));
+		panel_3.setBackground(Color.WHITE);
+		
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setViewportBorder(null);
+		GroupLayout gl_panel = new GroupLayout(panel);
+		gl_panel.setHorizontalGroup(
+			gl_panel.createParallelGroup(Alignment.LEADING)
+				.addGroup(Alignment.TRAILING, gl_panel.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_panel.createParallelGroup(Alignment.TRAILING)
+						.addComponent(scrollPane, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 731, Short.MAX_VALUE)
+						.addComponent(panel_3, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 731, Short.MAX_VALUE))
+					.addContainerGap())
+		);
+		gl_panel.setVerticalGroup(
+			gl_panel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_panel.createSequentialGroup()
+					.addContainerGap()
+					.addComponent(panel_3, GroupLayout.PREFERRED_SIZE, 92, GroupLayout.PREFERRED_SIZE)
+					.addGap(20)
+					.addComponent(scrollPane, GroupLayout.DEFAULT_SIZE, 263, Short.MAX_VALUE)
+					.addContainerGap())
+		);
+		
+		JPanel panel_4 = new JPanel();
+		panel_4.setBorder(new TitledBorder(new LineBorder(new Color(0, 0, 0), 1, true), "Result", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		panel_4.setBackground(Color.WHITE);
+		scrollPane.setViewportView(panel_4);
+		panel_4.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+		
+		JLabel lblOrderBy = new JLabel("Order By");
+		lblOrderBy.setForeground(new Color(255, 140, 0));
+		lblOrderBy.setFont(new Font("±¼¸²", Font.BOLD | Font.ITALIC, 14));
+		
+		final JSpinner ob_purList = new JSpinner();
+		ob_purList.setModel(new SpinnerListModel(new String[] {"senddate:Date", "thgbn:Product Type+Name", "thname:Product Name"}));
+		
+		final JSpinner ascDesc_purList = new JSpinner();
+		ascDesc_purList.setModel(new SpinnerListModel(new String[] {"asc:Ascendant", "desc:Descendant"}));
+		
+		JButton btnSearch = new JButton("Search");
+		btnSearch.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				String[] orderBy=ob_purList.getValue().toString().split(":");
+				String[] ascDesc=ascDesc_purList.getValue().toString().split(":");
+				List<Node> list=asf.GetPurchasedList(orderBy[0],ascDesc[0]);
+				BaseFunctions.DisplayList(list, asf.displayingTags_PurchasedList, asf.map_purchasedListTag);
+			}
+		});
+		GroupLayout gl_panel_3 = new GroupLayout(panel_3);
+		gl_panel_3.setHorizontalGroup(
+			gl_panel_3.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_panel_3.createSequentialGroup()
+					.addContainerGap()
+					.addGroup(gl_panel_3.createParallelGroup(Alignment.LEADING)
+						.addComponent(lblOrderBy)
+						.addGroup(gl_panel_3.createSequentialGroup()
+							.addComponent(ob_purList, GroupLayout.PREFERRED_SIZE, 170, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(ascDesc_purList, GroupLayout.PREFERRED_SIZE, 92, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(btnSearch)))
+					.addContainerGap(336, Short.MAX_VALUE))
+		);
+		gl_panel_3.setVerticalGroup(
+			gl_panel_3.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_panel_3.createSequentialGroup()
+					.addComponent(lblOrderBy)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_panel_3.createParallelGroup(Alignment.BASELINE)
+						.addComponent(ob_purList, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(ascDesc_purList, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnSearch))
+					.addContainerGap(21, Short.MAX_VALUE))
+		);
+		panel_3.setLayout(gl_panel_3);
+		panel.setLayout(gl_panel);
+		
+		JPanel panel_1 = new JPanel();
+		tabbedPane.addTab("Search", null, panel_1, null);
+		
+		JPanel panel_2 = new JPanel();
+		tabbedPane.addTab("Configuration", null, panel_2, null);
+		frmAppstoreclient.getContentPane().setLayout(groupLayout);
+		frmAppstoreclient.setBounds(0, 0, 800, 480);
+		frmAppstoreclient.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	}
+}

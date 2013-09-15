@@ -1,0 +1,14 @@
+package com.appstore.client.ui;
+
+import javax.swing.JPanel;
+
+public class AAA extends JPanel {
+
+	/**
+	 * Create the panel.
+	 */
+	public AAA() {
+
+	}
+
+}

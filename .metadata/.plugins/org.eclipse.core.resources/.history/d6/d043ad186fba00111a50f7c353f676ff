@@ -1,0 +1,174 @@
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.List;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+
+public class AppStoreFunctions {
+	static final String type="xml";
+	
+	/*public void setBaseURL(String _baseURL)
+	{
+		baseURL=_baseURL;
+	}*/
+	
+	public String login(String baseURL, String id, String pwd)
+	{
+		String strURL=baseURL+"/openapi/apiUserLogin.do";
+		String params = "memid="+id+"&pass="+pwd+"&type=xml";
+		String method = "POST";
+		Document doc=BaseFunctions.GetXMLDocument(strURL, params, method);
+
+		System.out.println("Got document");
+		return BaseFunctions.GetTagContentFromXMLDoc(doc, "pkey");
+		
+		/*NodeList _rowlist = doc.getChildNodes();
+		System.out.println(_rowlist.getLength());
+        for ( int i = 0; i < _rowlist.getLength(); i++ ) {
+            Node _row = _rowlist.item( i );
+            if ( _row.getNodeType() == Node.ELEMENT_NODE ) {
+                NodeList _child = _row.getChildNodes();
+                for ( int j = 0; j < _child.getLength(); j++ ) {
+                    Node _ele = _child.item( j );
+                    if ( _ele.getNodeType() == Node.ELEMENT_NODE ) {
+                        String _name = _ele.getNodeName();
+                        String _content = _ele.getTextContent();
+                        System.out.println(_name+":"+_content);
+                    }
+                    else if ( _ele.getNodeType() == Node.CDATA_SECTION_NODE ) {
+                    	String _name = _ele.getNodeName();
+                        String _content = _ele.getTextContent();
+                        System.out.println(_name+":"+_content);
+                    }
+                }
+            }
+            
+        }*/
+	}
+	
+	public List<Node> GetPurchasedList(String baseURL, String pkey, String orderBy, String ascDesc)
+	{
+		String strURL=baseURL+"/openapi/apiSaleThingList.do";
+		String params = "pkey="+pkey+"&type=xml&idx1="+orderBy+"&idx2="+ascDesc;
+		String method = "GET";
+		Document doc=BaseFunctions.GetXMLDocument(strURL, params, method);
+		BaseFunctions.PrintXMLDoc(doc);
+		
+		return BaseFunctions.GetListFromXMLDoc(doc, "list");
+	}
+	
+	public List<Node> GetComponentList(String baseURL, String pkey, String orderBy, String ascDesc, 
+			String strLang, String strPlatform, String name, String startDate, String endDate)
+	{
+		String strURL=baseURL+"/openapi/apiSdkThingList.do";
+		String params = "pkey="+pkey.trim()+"&type=xml&idx1="+orderBy+"&idx2="+ascDesc
+				+"&lang="+strLang+"&pfcd="+strPlatform+"&tname="+name+"&gigan1="+startDate+"&gigan2="+endDate;
+		
+		String method = "GET";
+		Document doc=BaseFunctions.GetXMLDocument(strURL, params, method);
+
+		BaseFunctions.PrintXMLDoc(doc);
+		
+		return BaseFunctions.GetListFromXMLDoc(doc, "list");
+	}
+	
+	public List<Node> GetAppList(String baseURL, String pkey, String orderBy, String ascDesc, 
+			String strPlatform, String strRobotId, String name, String startDate, String endDate)
+	{
+		String strURL=baseURL+"/openapi/apiAppThingList.do";
+		String params = "pkey="+pkey.trim()+"&type=xml&idx1="+orderBy+"&idx2="+ascDesc
+				+"&pfcd="+strPlatform+"&robotid="+strRobotId+"&tname="+name+"&gigan1="+startDate+"&gigan2="+endDate;
+		
+		String method = "GET";
+		Document doc=BaseFunctions.GetXMLDocument(strURL, params, method);
+
+		BaseFunctions.PrintXMLDoc(doc);
+		
+		return BaseFunctions.GetListFromXMLDoc(doc, "list");
+	}
+	
+	public Document GetDetailedInfo(String baseURL, String pkey, String strCode)
+	{
+		String strURL=baseURL+"/openapi/apiThingDetail.do";
+		String params = "pkey="+pkey.trim()+"&type=xml&tcode="+strCode;
+		String method = "GET";
+		Document doc=BaseFunctions.GetXMLDocument(strURL, params, method);
+
+		BaseFunctions.PrintXMLDoc(doc);
+		
+		return doc;
+	}
+
+	public List<Node> GetVersionList(String baseURL, String pkey, String strCode)
+	{
+		String strURL=baseURL+"/openapi/apiThingVerList.do";
+		String params = "pkey="+pkey.trim()+"&type=xml&tcode="+strCode;
+		String method = "GET";
+		Document doc=BaseFunctions.GetXMLDocument(strURL, params, method);
+
+		BaseFunctions.PrintXMLDoc(doc);
+		
+		return BaseFunctions.GetListFromXMLDoc(doc, "list");
+	}
+
+	public List<Node> GetCodeList(String baseURL, String pkey, String strCodeType)
+	{
+		String strURL=baseURL+"/openapi/apiCodeList.do";
+		String params = "pkey="+pkey.trim()+"&type=xml&tcdgbn="+strCodeType;
+		String method = "GET";
+		Document doc=BaseFunctions.GetXMLDocument(strURL, params, method);
+
+		BaseFunctions.PrintXMLDoc(doc);
+		
+		return BaseFunctions.GetListFromXMLDoc(doc, "list");
+	}
+	
+	public static void main(String args[])
+	{
+		// test
+		AppStoreFunctions asf=new AppStoreFunctions();
+		String baseURL = "http://192.168.10.48:9091";
+		String pkey = asf.login(baseURL, "yujintester2","a0000!!");
+		List list=asf.GetPurchasedList(baseURL, pkey, "", "");
+		System.out.println("Purchased List count:"+list.size());
+		//list=asf.GetComponentList(baseURL, pkey, "", "","all","all","","00000000","99999999");
+		//System.out.println("Component List count:"+list.size());
+		list=asf.GetAppList(baseURL, pkey, "", "","all","all","","00000000","99999999");
+		System.out.println("Component List count:"+list.size());
+		Document doc=asf.GetDetailedInfo(baseURL, pkey, "SDK20120529210136");
+		list=asf.GetVersionList(baseURL, pkey, "SDK20120529210136");
+		System.out.println("Component List count:"+list.size());
+		
+		/*
+		int downloadedBytes = bf.Downloader("http://www.getmura.com/currentversion/", "C:\\Users\\Maxdh\\Desktop\\mura.zip");
+		if (downloadedBytes > 0)
+			System.out.println("Downloaded!!");
+		else
+			System.out.println("Downloaded error!!");*/
+		/*boolean res = bf.Untar("C:\\Users\\Maxdh\\Desktop\\AAA\\hhh.tar", "C:\\Users\\Maxdh\\Desktop\\AAA\\CCC\\");
+		if (res)
+			System.out.println("Unzipped!!");
+		else
+			System.out.println("Unzip failed!!");
+		
+		res = bf.DeletePath("C:\\Users\\Maxdh\\Desktop\\AAA\\CCC\\");
+		if (res)
+			System.out.println("Deleted!!");
+		else
+			System.out.println("Delete failed!!");*/
+	}
+	
+}

@@ -1,0 +1,463 @@
+package com.appstore.client.functions;
+
+
+
+import java.io.*;
+import java.net.*;
+import java.util.*;
+
+import javax.swing.JOptionPane;
+import javax.xml.parsers.*;
+
+import org.w3c.dom.*;
+
+
+public class AppStoreFunctions {
+	
+	static final String type="xml";
+	static final String strConfFile="ini/Config.ini";
+	static final String strVerInfoFile="ini/ProductVersionInfo.xml";
+	static final String strTagMappingFile="ini/tagmapping.ini";
+	public Properties prop_conf = new Properties();
+	public Properties prop_productVersionInfo = new Properties();
+
+	public LinkedHashMap map_purchasedListTag= new LinkedHashMap();
+	public LinkedHashMap map_searchedListTag = new LinkedHashMap();
+	public LinkedHashMap map_detailedInfoTag = new LinkedHashMap();
+	
+	public ArrayList<String> displayingTags_PurchasedList=new ArrayList<String>();
+	public ArrayList<String> displayingTags_SearchedList=new ArrayList<String>();
+	public ArrayList<String> displayingTags_DetailedInfo=new ArrayList<String>();
+	
+	public String baseURL = "http://211.238.244.71:9091/";
+	public String pkey="";		
+	public String baseDownloadPath="Download\\";
+	public String baseCompRepoPath="C:\\OPRoS\\OprosDevelopment\\Repository\\";
+	public String basePkgPath="C:\\OPRoS\\OprosRobot\\Package\\";
+
+	
+	/*public void setBaseURL(String _baseURL)
+	{
+		baseURL=_baseURL;
+	}*/
+	
+	public boolean ReadConfigFile()
+	{
+		// Read keys from properties
+		baseURL=prop_conf.getProperty("baseURL");
+		if (pkey.equals(""))
+			pkey=prop_conf.getProperty("pkey");
+		baseDownloadPath=prop_conf.getProperty("baseDownloadPath");
+		baseCompRepoPath=prop_conf.getProperty("baseCompRepoPath");
+		basePkgPath=prop_conf.getProperty("basePkgPath");
+		
+		String[] arrTag1=prop_conf.getProperty("DisplayingTags_PurchasedList").split(",");
+		String[] arrTag2=prop_conf.getProperty("DisplayingTags_SearchedList").split(",");
+		String[] arrTag3=prop_conf.getProperty("DisplayingTags_DetailedInfo").split(",");
+		int i=0;
+		displayingTags_PurchasedList.clear();
+		displayingTags_SearchedList.clear();
+		displayingTags_DetailedInfo.clear();
+		for (i=0;i<arrTag1.length;i++)
+			displayingTags_PurchasedList.add(arrTag1[i]);
+		for (i=0;i<arrTag2.length;i++)
+			displayingTags_SearchedList.add(arrTag2[i]);
+		for (i=0;i<arrTag3.length;i++)
+			displayingTags_DetailedInfo.add(arrTag3[i]);
+		
+		return true;
+	}
+	
+	public AppStoreFunctions()
+	{
+		BufferedReader in;
+		
+		// Read tag mapping info
+		try {
+			// Read configure property file
+			prop_conf.load(new FileInputStream(strConfFile));
+			
+			// Read version informations XML file
+			prop_productVersionInfo.loadFromXML(new FileInputStream(strVerInfoFile));
+			
+			in = new BufferedReader(
+					new InputStreamReader(new FileInputStream(strTagMappingFile)));
+		
+		    String s;
+		    HashMap map_processing=map_searchedListTag;
+	    	while ((s = in.readLine()) != null) {
+				if (s.substring(0, 2).equals("::"))
+				{
+					s=s.replace(":", "");
+	
+					if (s.equalsIgnoreCase("PURCHASEDLIST"))
+						map_processing=map_purchasedListTag;
+					else if (s.equalsIgnoreCase("SEARCHEDLIST"))
+						map_processing=map_searchedListTag;
+					else if (s.equalsIgnoreCase("DETAILEDINFO"))
+						map_processing=map_detailedInfoTag;
+				}
+				else
+				{
+					String[] tag_explain=s.split(",", 2);
+					map_processing.put(tag_explain[0], tag_explain[1]);
+					//System.out.println(tag_explain[0]+":"+map_processing.get(tag_explain[0]));
+				}
+			}
+			in.close();
+			
+			// Read keys from properties
+			ReadConfigFile();
+						
+			/*
+			// Write keys
+			prop_conf.setProperty("baseURL", baseURL);
+			prop_conf.setProperty("pkey", pkey);
+			prop_conf.setProperty("baseDownloadPath", baseDownloadPath);
+			prop_conf.setProperty("baseCompRepoPath", baseCompRepoPath);
+			prop_conf.setProperty("basePkgPath", basePkgPath);
+			
+			// Store to ini file
+			SaveSettings();
+			prop_productVersionInfo.storeToXML(new FileOutputStream(strVerInfoFile), "Updated");
+			*/
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	}
+	
+	public void SaveSettings()
+	{
+		
+		try {
+			prop_conf.store( new FileOutputStream(strConfFile), "changed.");
+			ReadConfigFile();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public boolean login(String id, String pwd)
+	{
+		String strURL=baseURL+"/openapi/apiUserLogin.do";
+		String params = "memid="+id+"&pass="+pwd+"&type=xml";
+		String method = "POST";
+		Document doc=BaseFunctions.GetXMLDocument(strURL, params, method);
+		
+		List<Node> nodeArr=BaseFunctions.GetListFromXMLDoc(doc, "result");
+		pkey=BaseFunctions.GetTagContentFromNode(nodeArr.get(0), "pkey").trim();
+		prop_conf.setProperty("pkey", pkey);
+		SaveSettings();
+		return (!pkey.equals("")); 
+		
+	}
+	
+	public List<Node> GetPurchasedList(String orderBy, String ascDesc)
+	{
+		String strURL=baseURL+"/openapi/apiSaleThingList.do";
+		String params = "pkey="+pkey+"&type=xml&idx1="+orderBy+"&idx2="+ascDesc;
+		String method = "GET";
+		Document doc=BaseFunctions.GetXMLDocument(strURL, params, method);
+		//Util.PrintXMLDoc(doc);
+		
+		return BaseFunctions.GetListFromXMLDoc(doc, "list");
+	}
+	
+	public List<Node> GetComponentList(String orderBy, String ascDesc, 
+			String strLang, String strPlatform, String name, String startDate, String endDate)
+	{
+		String strURL=baseURL+"/openapi/apiSdkThingList.do";
+		String params = "pkey="+pkey.trim()+"&type=xml&idx1="+orderBy+"&idx2="+ascDesc
+				+"&lang="+strLang+"&pfcd="+strPlatform+"&tname="+name+"&gigan1="+startDate+"&gigan2="+endDate;
+		
+		String method = "GET";
+		Document doc=BaseFunctions.GetXMLDocument(strURL, params, method);
+		//Util.PrintXMLDoc(doc);
+		
+		return BaseFunctions.GetListFromXMLDoc(doc, "list");
+	}
+	
+	public List<Node> GetAppList(String orderBy, String ascDesc, 
+			String strPlatform, String strRobotId, String name, String startDate, String endDate)
+	{
+		String strURL=baseURL+"/openapi/apiAppThingList.do";
+		String params = "pkey="+pkey.trim()+"&type=xml&idx1="+orderBy+"&idx2="+ascDesc
+				+"&pfcd="+strPlatform+"&robotid="+strRobotId+"&tname="+name+"&gigan1="+startDate+"&gigan2="+endDate;
+		
+		String method = "GET";
+		Document doc=BaseFunctions.GetXMLDocument(strURL, params, method);
+		//Util.PrintXMLDoc(doc);
+		
+		return BaseFunctions.GetListFromXMLDoc(doc, "list");
+	}
+	
+	public List<Node> GetDetailedInfo(String strCode)
+	{
+		String strURL=baseURL+"/openapi/apiThingDetail.do";
+		String params = "pkey="+pkey.trim()+"&type=xml&tcode="+strCode;
+		String method = "GET";
+		Document doc=BaseFunctions.GetXMLDocument(strURL, params, method);
+		//Util.PrintXMLDoc(doc);
+		
+		return BaseFunctions.GetListFromXMLDoc(doc, "list");
+	}
+
+	public List<Node> GetVersionList(String strCode)
+	{
+		String strURL=baseURL+"/openapi/apiThingVerList.do";
+		String params = "pkey="+pkey.trim()+"&type=xml&tcode="+strCode;
+		String method = "GET";
+		Document doc=BaseFunctions.GetXMLDocument(strURL, params, method);
+		//Util.PrintXMLDoc(doc);
+		
+		return BaseFunctions.GetListFromXMLDoc(doc, "list");
+	}
+
+	public List<Node> GetCodeList(String strCodeType)
+	{
+		String strURL=baseURL+"/openapi/apiCodeList.do";
+		String params = "pkey="+pkey.trim()+"&type=xml&cdgbn="+strCodeType;
+		String method = "GET";
+		Document doc=BaseFunctions.GetXMLDocument(strURL, params, method);
+		//Util.PrintXMLDoc(doc);
+		
+		return BaseFunctions.GetListFromXMLDoc(doc, "list");
+	}
+	
+	public List<Node> PurchaseFreeProduct(String strProductID)
+	{
+		String strURL=baseURL+"/openapi/apiThingFreeSale.do";
+		String params = "pkey="+pkey.trim()+"&type=xml&thingid="+strProductID;
+		String method = "GET";
+		Document doc=BaseFunctions.GetXMLDocument(strURL, params, method);
+		//Util.PrintXMLDoc(doc);
+		
+		return BaseFunctions.GetListFromXMLDoc(doc, "result");
+	}	
+	
+	public boolean DownloadProduct(String strProductID)
+	{
+		Node node=null;
+		for (int loop=0;loop<2;loop++)
+		{
+			List<Node> list=GetPurchasedList("","");
+			
+			// Search product information among purchased list
+			for (int i=0;i<list.size();i++)
+			{
+				Node tmp=list.get(i);
+				if (BaseFunctions.GetTagContentFromNode(tmp, "tcode").equalsIgnoreCase(strProductID))
+				{
+					node=tmp;
+					break;
+				}
+			}
+			
+			if (node!=null)
+			{
+				break;
+			}
+			
+			// For the case that user have not purchased this product yet. 
+			// If The product is free, user can purchase by the next command.   
+			List<Node> purRes=PurchaseFreeProduct(strProductID);
+		}
+		
+		// Check if product is downloadable
+		if (node==null)
+		{
+			JOptionPane.showMessageDialog(null, "You must buy this product first!");
+			//System.out.println("You must buy this product first");
+			return false;
+		}
+		
+		// Get type, download version and file url
+		String type=BaseFunctions.GetTagContentFromNode(node,  "tgubun");
+    	String lastVer=BaseFunctions.GetTagContentFromNode(node,  "lastver");
+    	String lastVer_url=BaseFunctions.GetTagContentFromNode(node,  "lastver_url");
+    	
+    	// Check download url
+    	if (lastVer_url.trim().equals(""))
+    	{
+    		JOptionPane.showMessageDialog(null, "This product is not uploaded yet!");
+    		//System.out.println("This product is not uploaded yet!");
+			return false;
+    	}
+    	
+    	// Get previously downloaded version info
+    	String[] verinfo=GetVersionInfo(strProductID);
+
+    	// Check version collision
+    	if (lastVer.compareTo(verinfo[2])<=0)
+    	{
+    		/*
+    		System.out.println("You already downloaded latest version!");
+    		System.out.print("Do you want to downloaded old version anyway(y/n)?");
+    		Scanner sc = new Scanner(System.in);
+    		String line = sc.nextLine();
+    		if (!line.equalsIgnoreCase("y"))
+    			return false;
+    		*/
+    		int ret = JOptionPane.showConfirmDialog(null, 
+    				"<html>You already downloaded latest version.<br/>Do you want to redownload anyway?</html>");
+    		if (ret!=JOptionPane.YES_OPTION)
+    			return false;
+    	}
+    	
+    	// Download tar file
+    	String targetFilename=lastVer_url.substring(lastVer_url.lastIndexOf("/")+1);
+    	//System.out.println(lastVer_url+","+baseDownloadPath+targetFilename);
+    	if (BaseFunctions.Downloader(lastVer_url, baseDownloadPath+targetFilename) > 0)
+    	{
+	    	// Update version info
+	    	verinfo[0]=type;
+	    	verinfo[1]=targetFilename;
+	    	verinfo[2]=lastVer;
+	    	return UpdateProductVersionInfo(strProductID, verinfo);
+    	}
+    	else
+    	{
+    		JOptionPane.showMessageDialog(null, "Download failed. Please contact webstore master." );
+    		return false;
+    	}
+	}
+	
+	public boolean DeleteProduct(String strProductID)
+	{
+		String[] verinfo=GetVersionInfo(strProductID);
+		if (verinfo[2].trim().equals(""))
+		{
+			JOptionPane.showMessageDialog(null, "You have not downloaded this product yet." );
+			return false;
+		}
+		BaseFunctions.DeletePath(baseDownloadPath+verinfo[1]);
+    	
+    	// Update version info
+    	verinfo[2]=" ";
+    	return UpdateProductVersionInfo(strProductID, verinfo);
+	}
+	
+	public boolean InstallProduct(String strProductID)
+	{
+    	// Get current version info
+    	// (key:Product ID, value:(type, tar filename, downloaded version, installed version))
+    	String[] verinfo=GetVersionInfo(strProductID);
+
+    	if (verinfo[2].trim().equals(""))
+    	{
+    		//System.out.println("You have not downloaded this product yet!");
+    		JOptionPane.showMessageDialog(null, "You have not downloaded this product yet." );
+			return false;
+    	}
+    	
+    	// Check version collision
+    	if (verinfo[2].compareTo(verinfo[3])<=0)
+    	{
+    		/*System.out.println("You already installed latest version!");
+    		System.out.print("Do you want to install old version anyway(y/n)?");
+    		Scanner sc = new Scanner(System.in);
+    		String line = sc.nextLine();
+    		if (!line.equalsIgnoreCase("y"))
+    			return false;*/
+    		int ret = JOptionPane.showConfirmDialog(null, 
+    				"<html>You already installed latest version.<br/>Do you want to reinstall anyway?</html>");
+    		if (ret!=JOptionPane.YES_OPTION)
+    			return false;
+    	}
+    	
+    	// Untar
+    	String tarpath=baseDownloadPath+verinfo[1];
+    	String untarDir="";
+    	if (verinfo[0].equals("sdk"))
+    		untarDir=baseCompRepoPath;
+    	else
+    		untarDir=basePkgPath;
+    	untarDir+=verinfo[1].substring(0, verinfo[1].indexOf(".tar"));
+    	BaseFunctions.Untar(tarpath, untarDir);
+    	
+    	// Reorganize package
+    	/*File dir = new File(untarDir);
+		if (dir.isDirectory())
+		{
+			String[] children = dir.list();
+	        for (int i=0; i<children.length; i++) {
+	            boolean success = DeletePath(dir.getAbsolutePath()+"\\"+children[i]);
+	            if (!success) {
+	                return false;
+	            }
+	        }
+		}
+		*/
+    	
+    	// Update version info
+    	verinfo[3]=verinfo[2];
+    	return UpdateProductVersionInfo(strProductID, verinfo);
+	}
+	
+	public boolean UninstallProduct(String strProductID)
+	{
+    	// Get current version info
+    	// (key:Product ID, value:(type, tar filename, downloaded version, installed version))
+    	String[] verinfo=GetVersionInfo(strProductID);
+
+    	if (verinfo[3].trim().equals(""))
+    	{
+    		//System.out.println("You have not installed this product yet!");
+    		JOptionPane.showMessageDialog(null, "You have not installed this product yet!" );
+			return false;
+    	}
+    	
+    	// Delete
+    	String deleteDir="";
+    	if (verinfo[0].equals("sdk"))
+    		deleteDir=baseCompRepoPath;
+    	else
+    		deleteDir=basePkgPath;
+    	deleteDir+=verinfo[1];
+    	BaseFunctions.DeletePath(deleteDir);
+    	
+    	// Update version info
+    	verinfo[3]=" ";
+    	return UpdateProductVersionInfo(strProductID, verinfo);
+	}
+	
+	public boolean UpdateProductVersionInfo(String strProductID, String[] verinfo)
+	{
+		String versionStr="";
+		String comma="";
+		for (int i=0;i<verinfo.length;i++)
+		{
+			versionStr+=comma+verinfo[i];
+			comma=",";
+		}
+		try {
+			prop_productVersionInfo.setProperty(strProductID, versionStr);
+			prop_productVersionInfo.storeToXML(new FileOutputStream(strVerInfoFile), "Updated");
+			return true;
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	public String[] GetVersionInfo(String strProductID)
+	{
+		// key:Product ID
+		// value:(type, tar filename, downloaded version, installed version, installed path))
+		String[] verInfo=prop_productVersionInfo.getProperty(strProductID, " , , , , ").split(",");
+		return verInfo;
+	}
+}

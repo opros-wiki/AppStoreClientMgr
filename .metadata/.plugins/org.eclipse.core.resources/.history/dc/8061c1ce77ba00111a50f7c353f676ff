@@ -1,0 +1,50 @@
+import java.util.List;
+
+import org.w3c.dom.Document;
+
+
+public class AppStoreClientConsole {
+	static String aaa;
+	public static void main(String args[])
+	{
+		System.out.println(aaa);
+		aaa=args[0];
+		
+		// test
+		AppStoreFunctions asf=new AppStoreFunctions();
+		String baseURL = "http://192.168.10.48:9091";
+		String pkey = asf.login(baseURL, "yujintester2","a0000!!");
+		List list=asf.GetPurchasedList(baseURL, pkey, "", "");
+		System.out.println("Purchased List count:"+list.size());
+		//list=asf.GetComponentList(baseURL, pkey, "", "","all","all","","00000000","99999999");
+		//System.out.println("Component List count:"+list.size());
+		list=asf.GetAppList(baseURL, pkey, "", "","all","all","","00000000","99999999");
+		System.out.println("Component List count:"+list.size());
+		Document doc=asf.GetDetailedInfo(baseURL, pkey, "SDK20120529210136");
+		System.out.println("Got Detailed Info");		
+		//list=asf.GetVersionList(baseURL, pkey, "SDK20120529210136");
+		//System.out.println("Component List count:"+list.size());
+		//list=asf.GetCodeList(baseURL, pkey, "BT");
+		//System.out.println("Code List count:"+list.size());
+		//asf.PurchaseFreeProduct(baseURL, pkey, "SDK20120529210136");
+		//System.out.println("Purchased");		
+		
+		/*
+		int downloadedBytes = bf.Downloader("http://www.getmura.com/currentversion/", "C:\\Users\\Maxdh\\Desktop\\mura.zip");
+		if (downloadedBytes > 0)
+			System.out.println("Downloaded!!");
+		else
+			System.out.println("Downloaded error!!");*/
+		/*boolean res = bf.Untar("C:\\Users\\Maxdh\\Desktop\\AAA\\hhh.tar", "C:\\Users\\Maxdh\\Desktop\\AAA\\CCC\\");
+		if (res)
+			System.out.println("Unzipped!!");
+		else
+			System.out.println("Unzip failed!!");
+		
+		res = bf.DeletePath("C:\\Users\\Maxdh\\Desktop\\AAA\\CCC\\");
+		if (res)
+			System.out.println("Deleted!!");
+		else
+			System.out.println("Delete failed!!");*/
+	}
+}
